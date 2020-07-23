@@ -1,0 +1,9 @@
+content_assist_category_order=org.eclipse.cdt.ui.parserProposalCategory\:0\u0000org.eclipse.cdt.ui.templateProposalCategory\:1\u0000org.eclipse.cdt.ui.helpProposalCategory\:2\u0000org.eclipse.cdt.ui.textProposalCategory\:65538\u0000
+content_assist_proposals_timeout=500
+eclipse.preferences.version=1
+formatter_profile=org.eclipse.cdt.ui.default.allman_profile
+formatter_settings_version=1
+sourceHoverBackgroundColor=47,47,47
+spelling_locale_initialized=true
+useAnnotationsPrefPage=true
+useQuickDiffPrefPage=true

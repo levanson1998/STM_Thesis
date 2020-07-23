@@ -1,0 +1,36 @@
+/*
+ * pid_controller.c
+ *
+ *  Created on: Jul 23, 2020
+ *      Author: Son
+ */
+
+#include <pid_controller.h>;
+
+volatile float PID_current[2];
+volatile float PID_in[2];
+volatile float PID_out[2];
+float PID_P[2], PID_I[2], PID_D[2];
+float PID_Kp[2], PID_Ki[2], PID_Kd[2];
+float PID_pre_err[2], PID_ppre_err[2];
+float PID_out_max, PID_out_min;
+
+void PID_Init(float *_Kp, float *_Ki, float *_Kd, float _T) {
+	for (int i = 0; i < NoPID; i++) {
+		PID_Kp[i] = Kp[i];
+		PID_Ki[i] = Ki[i];
+		PID_Kd[i] = Kd[i];
+	}
+	PID_T = T;
+}
+
+
+
+void PID_Calculate(){
+float error, P, I, D;
+
+for (int i=0;i<2; i++){
+	error
+}
+}
+
