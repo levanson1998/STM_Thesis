@@ -8,7 +8,7 @@
 #include <pid_controller.h>
 
 volatile float PID_current[2];
-volatile float PID_in[2];
+//volatile float PID_in[2];
 volatile float PID_out[2];
 //float PID_P[2], PID_I[2], PID_D[2];
 float PID_Kp[2], PID_Ki[2], PID_Kd[2];
@@ -26,24 +26,23 @@ void PID_Init(float *Kp, float *Ki, float *Kd, float Ts) {
 
 
 
-void PID_Calculate(){
-float error, PID_P, PID_I, PID_D;
+void PID_Calculate(int16_t *PID_in){
+	float error, PID_P, PID_I, PID_D;
 
-for (int i=0;i<2; i++){
-	error = PID_current[i]-PID_in[i];
-	PID_P = PID_Kp[i]*(error-PID_pre_err[i]);
-	PID_I = 0.5F*PID_Ki[i]*PID_T*(error+PID_pre_err[i]);
-	PID_D = PID_Kd[i]*(error-2.0f*PID_pre_err[i]+PID_ppre_err[i])/PID_T;
+	for (int i=0;i<2; i++){
+		error = PID_current[i]-PID_in[i];
+		PID_P = PID_Kp[i]*(error-PID_pre_err[i]);
+		PID_I = 0.5F*PID_Ki[i]*PID_T*(error+PID_pre_err[i]);
+		PID_D = PID_Kd[i]*(error-2.0f*PID_pre_err[i]+PID_ppre_err[i])/PID_T;
 
+		PID_out[i] += PID_P + PID_I + PID_D;
 
-	PID_out[i] += PID_P + PID_I + PID_D;
-
-	if (PID_out[i]>PID_out_max){
-		PID_out[i]=PID_out_max;
+		if (PID_out[i]>PID_out_max){
+			PID_out[i]=PID_out_max;
+		}
+		else if (PID_out[i]<PID_out_min){
+			PID_out[i]=PID_out_min;
+		}
 	}
-	else if (PID_out[i]<PID_out_min){
-		PID_out[i]=PID_out_min;
-	}
-}
 }
 

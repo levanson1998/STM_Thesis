@@ -60,22 +60,16 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define ENCODER_L1_Pin GPIO_PIN_0
-#define ENCODER_L1_GPIO_Port GPIOA
-#define ENCODER_L2_Pin GPIO_PIN_1
-#define ENCODER_L2_GPIO_Port GPIOA
-#define ENCODER_R1_Pin GPIO_PIN_6
-#define ENCODER_R1_GPIO_Port GPIOA
-#define ENCODER_R2_Pin GPIO_PIN_7
-#define ENCODER_R2_GPIO_Port GPIOA
-#define MOTOR_DIR_L_Pin GPIO_PIN_2
-#define MOTOR_DIR_L_GPIO_Port GPIOB
 #define MOTOR_L_Pin GPIO_PIN_9
 #define MOTOR_L_GPIO_Port GPIOE
 #define MOTOR_R_Pin GPIO_PIN_11
 #define MOTOR_R_GPIO_Port GPIOE
+#define MOTOR_DIR_L_Pin GPIO_PIN_15
+#define MOTOR_DIR_L_GPIO_Port GPIOE
 #define MOTOR_DIR_R_Pin GPIO_PIN_10
-#define MOTOR_DIR_R_GPIO_Port GPIOB
+#define MOTOR_DIR_R_GPIO_Port GPIOD
+#define MOTOR_DIR_LD11_Pin GPIO_PIN_11
+#define MOTOR_DIR_LD11_GPIO_Port GPIOD
 #define LED_GRE_Pin GPIO_PIN_12
 #define LED_GRE_GPIO_Port GPIOD
 #define LED_ORG_Pin GPIO_PIN_13
