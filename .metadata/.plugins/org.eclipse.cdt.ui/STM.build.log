@@ -1,10 +1,10 @@
-17:24:33 **** Incremental Build of configuration Debug for project STM ****
+23:20:33 **** Incremental Build of configuration Debug for project STM ****
 make -j4 all 
 arm-none-eabi-size   STM.elf 
    text	   data	    bss	    dec	    hex	filename
-  20048	     48	   2216	  22312	   5728	STM.elf
+  20176	     48	   2232	  22456	   57b8	STM.elf
 Finished building: default.size.stdout
  
 
-17:24:35 Build Finished. 0 errors, 0 warnings. (took 1s.145ms)
+23:20:34 Build Finished. 0 errors, 0 warnings. (took 889ms)
 

@@ -33,6 +33,7 @@ TIM5: DELAY 5MS
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <pid_controller.h>
+#include "math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -63,11 +64,11 @@ DMA_HandleTypeDef hdma_usart2_rx;
 volatile float *velo;
 volatile int16_t encoder[2];
 volatile int16_t /*enc[2], */test[10];
+volatile float enc[4];
 
 /* UART 2*/
 uint8_t receivebuffer[6], transmitData[3];
-uint8_t dataTransmit[14];
-
+uint8_t dataTransmit[16];
 /* PID Controller*/
 float Kp[2] = {1.0f, 0.5f};
 float Ki[2] = {1.0f, 0.5f};
@@ -95,35 +96,43 @@ float * Get_Velocity();
 /* USER CODE BEGIN 0 */
 void Control_Motor(int16_t duty_l,int16_t duty_r){
 	if(duty_l>0){
-		HAL_GPIO_WritePin(GPIOB, MOTOR_DIR_L_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOD, MOTOR_DIR_L_Pin, GPIO_PIN_SET);
 		__HAL_TIM_SET_COMPARE(&htim1, MOTOR_L_Pin, duty_l);
 	}
 	else{
-		HAL_GPIO_WritePin(GPIOB, MOTOR_DIR_L_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOD, MOTOR_DIR_L_Pin, GPIO_PIN_RESET);
 		__HAL_TIM_SET_COMPARE(&htim1, MOTOR_L_Pin, duty_l);
 	}
 
 	if(duty_r>0){
-		HAL_GPIO_WritePin(GPIOB, MOTOR_DIR_R_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOD, MOTOR_DIR_R_Pin, GPIO_PIN_RESET);
 		__HAL_TIM_SET_COMPARE(&htim1, MOTOR_L_Pin, duty_r);
 	}
 	else{
-		HAL_GPIO_WritePin(GPIOB, MOTOR_DIR_R_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOD, MOTOR_DIR_R_Pin, GPIO_PIN_SET);
 		__HAL_TIM_SET_COMPARE(&htim1, MOTOR_R_Pin, duty_r);
 	}
 }
 
 float * Get_Velocity(){
-	float enc[2];
-	enc[0]= (TIM4->CNT);
-	enc[1]= (TIM2->CNT);
-//	TIM4->CNT=0;
-//	TIM2->CNT=0;
+//	volatile float enc[2];
+	enc[0]= fabs((TIM4->CNT)-5000.0F);
+	if ((TIM4->CNT)>5000) enc[1]=0x01;
+	else enc[1]=0x01;
+
+	enc[2]= fabs((TIM2->CNT)-5000.0F);
+	if ((TIM2->CNT)>5000) enc[3]=0x01;
+	else enc[3]=0x00;
+
+	TIM4->CNT=5000;
+	TIM2->CNT=5000;
+
 	return enc;
 }
 
 // data1: x, data2: y, Kpid
-void Transmit_Uart(float x, float y, float v_l, float v_r){
+void Transmit_Uart(float x, float y, float v_l, int dir_l, float v_r, int dir_r){
+
 
 	dataTransmit[0]=(uint8_t)((((uint16_t)x)|0x00FF)>>8); // 8 bit H
 	dataTransmit[1]=(uint8_t)((((uint16_t)x)|0xFF00)); 	      // 8 bit L
@@ -139,15 +148,18 @@ void Transmit_Uart(float x, float y, float v_l, float v_r){
 	dataTransmit[9]=(uint8_t)((((uint16_t)((v_l-(uint16_t)v_l)*10000.0f))|0x00FF)>>8); // 8 bit H
 	dataTransmit[10]=(uint8_t)((((uint16_t)((v_l-(uint16_t)v_l)*10000.0f))|0xFF00));    // 8 bit L
 
-	dataTransmit[11]=(uint8_t)v_r; // 8 bit truoc dau .
-	dataTransmit[12]=(uint8_t)((((uint16_t)((v_r-(uint16_t)v_r)*10000.0f))|0x00FF)>>8); // 8 bit H
-	dataTransmit[13]=(uint8_t)((((uint16_t)((v_r-(uint16_t)v_r)*10000.0f))|0xFF00));    // 8 bit L
+	dataTransmit[11]=(uint8_t)dir_l;
 
+	dataTransmit[12]=(uint8_t)v_r; // 8 bit truoc dau .
+	dataTransmit[13]=(uint8_t)((((uint16_t)((v_r-(uint16_t)v_r)*10000.0f))|0x00FF)>>8); // 8 bit H
+	dataTransmit[14]=(uint8_t)((((uint16_t)((v_r-(uint16_t)v_r)*10000.0f))|0xFF00));    // 8 bit L
+
+	dataTransmit[15]=(uint8_t)dir_r;
 //	for(int i=0;i<14;i++){
 //		dataTransmit[i]=0xF3;
 //	}
 
-	HAL_UART_Transmit(&huart2, &dataTransmit[0], 14, 1);
+	HAL_UART_Transmit(&huart2, &dataTransmit[0], sizeof(dataTransmit), 1);
 //	dataTransmit[8]=(int8_t)v_l; // 8 bit truoc dau .
 //	dataTransmit[9]=(int8_t)((((int16_t)((x-(int16_t)v_l)*10000))|0xF0)>>8); // 8 bit H
 //	dataTransmit[10]=(int8_t)((((int16_t)((x-(int16_t)v_l)*10000))|0x0F));    // 8 bit L
@@ -359,10 +371,10 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 2000;
+  htim2.Init.Period = 10000;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
@@ -408,10 +420,10 @@ static void MX_TIM4_Init(void)
   htim4.Instance = TIM4;
   htim4.Init.Prescaler = 0;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 2000;
+  htim4.Init.Period = 10000;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
@@ -455,9 +467,9 @@ static void MX_TIM5_Init(void)
 
   /* USER CODE END TIM5_Init 1 */
   htim5.Instance = TIM5;
-  htim5.Init.Prescaler = 14;
+  htim5.Init.Prescaler = 8400;
   htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim5.Init.Period = 29;
+  htim5.Init.Period = 49;
   htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
@@ -589,10 +601,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(MOTOR_DIR_L_GPIO_Port, MOTOR_DIR_L_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, MOTOR_DIR_R_Pin|MOTOR_DIR_LD11_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOD, MOTOR_DIR_R_Pin|MOTOR_DIR_L_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, LED_GRE_Pin|LED_ORG_Pin|LED_RED_Pin|LED_BLU_Pin, GPIO_PIN_RESET);
@@ -604,15 +613,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : MOTOR_DIR_L_Pin */
-  GPIO_InitStruct.Pin = MOTOR_DIR_L_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(MOTOR_DIR_L_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : MOTOR_DIR_R_Pin MOTOR_DIR_LD11_Pin */
-  GPIO_InitStruct.Pin = MOTOR_DIR_R_Pin|MOTOR_DIR_LD11_Pin;
+  /*Configure GPIO pins : MOTOR_DIR_R_Pin MOTOR_DIR_L_Pin */
+  GPIO_InitStruct.Pin = MOTOR_DIR_R_Pin|MOTOR_DIR_L_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -632,29 +634,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 //	delay 5ms
 	if(htim->Instance==htim5.Instance){
 		HAL_GPIO_TogglePin(GPIOD, LED_GRE_Pin);
-/*
-		velo =Get_Velocity();
-		for(int i=0;i>2;i++){
-			test[i]=*(velo+i);
-			//encoder[i]=*(velo+i);
-			PID_Calculate(test);
-			Control_Motor(PID_out[1], PID_out[0]);
-		}
-*/
 
+		velo =Get_Velocity();
+		for(int i=0;i<2;i++){
+			PID_current[i]=*(velo+i);
+		}
+		test[0]=10.0f;
+		test[1]=8.0f;
+		//encoder[i]=*(velo+i);
+		PID_Calculate(test);
+		Control_Motor(PID_out[1], PID_out[0]);
 	}
 //	delay 100ms
 	else if(htim->Instance==htim9.Instance){
 		HAL_GPIO_TogglePin(GPIOD, LED_RED_Pin);
 
-		velo =Get_Velocity();
-		for(int i=0;i>2;i++){
-			test[i]=*(velo+i);
-			//encoder[i]=*(velo+i);
-			PID_Calculate(test);
-			Control_Motor(PID_out[1], PID_out[0]);
-		}
-		Transmit_Uart(523.456, 321.654,*(velo),*(velo+1));
+		Transmit_Uart(523.456, 321.654,*(velo), *(velo+1), *(velo+2), *(velo+3));
+//		Transmit_Uart(523.456, 321.654,12.356,1,20.214,3);
 	}
 }
 /* USER CODE END 4 */

@@ -1,7 +1,28 @@
-17:24:33 **** Incremental Build of configuration Debug for project STM ****
+23:20:27 **** Incremental Build of configuration Debug for project STM ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DUSE_HAL_DRIVER -DSTM32F411xE -DDEBUG -c -I../Drivers/CMSIS/Include -I"E:/LAPTOP/HOC_TAP/DC-LVTN/Project/STM32F411/STM/Core/Src" -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Core/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'Get_Velocity':
+../Core/Src/main.c:130:9: warning: return discards 'volatile' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  return enc;
+         ^~~
+arm-none-eabi-gcc -o "STM.elf" @"objects.list"   -mcpu=cortex-m4 -T"E:\LAPTOP\HOC_TAP\DC-LVTN\Project\STM32F411\STM\STM32F411VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: STM.elf
+ 
+arm-none-eabi-objdump -h -S  STM.elf  > "STM.list"
+arm-none-eabi-objcopy  -O binary  STM.elf  "STM.bin"
+arm-none-eabi-size   STM.elf 
+   text	   data	    bss	    dec	    hex	filename
+  20176	     48	   2232	  22456	   57b8	STM.elf
+Finished building: default.size.stdout
+ 
+Finished building: STM.bin
+ 
+Finished building: STM.list
+ 
+23:20:33 **** Incremental Build of configuration Debug for project STM ****
 make -j4 all 
 arm-none-eabi-size   STM.elf 
    text	   data	    bss	    dec	    hex	filename
-  20048	     48	   2216	  22312	   5728	STM.elf
+  20176	     48	   2232	  22456	   57b8	STM.elf
 Finished building: default.size.stdout
  

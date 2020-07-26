@@ -66,12 +66,10 @@ void Error_Handler(void);
 #define MOTOR_L_GPIO_Port GPIOE
 #define MOTOR_R_Pin GPIO_PIN_11
 #define MOTOR_R_GPIO_Port GPIOE
-#define MOTOR_DIR_L_Pin GPIO_PIN_15
-#define MOTOR_DIR_L_GPIO_Port GPIOE
 #define MOTOR_DIR_R_Pin GPIO_PIN_10
 #define MOTOR_DIR_R_GPIO_Port GPIOD
-#define MOTOR_DIR_LD11_Pin GPIO_PIN_11
-#define MOTOR_DIR_LD11_GPIO_Port GPIOD
+#define MOTOR_DIR_L_Pin GPIO_PIN_11
+#define MOTOR_DIR_L_GPIO_Port GPIOD
 #define LED_GRE_Pin GPIO_PIN_12
 #define LED_GRE_GPIO_Port GPIOD
 #define LED_ORG_Pin GPIO_PIN_13
