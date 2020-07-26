@@ -19,6 +19,6 @@ extern float PID_pre_err[2], PID_ppre_err[2];
 extern float PID_out_max, PID_out_min, PID_T;
 
 void PID_Init(float *Kp, float *Ki, float *Kd, float Ts);
-void PID_Calculate();
+float *PID_Calculate(int16_t *PID_in, float *PID_current);
 
 #endif /* SRC_PID_CONTROLLER_H_ */

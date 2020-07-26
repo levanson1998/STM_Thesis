@@ -7,7 +7,7 @@
 
 #include <pid_controller.h>
 
-volatile float PID_current[2];
+
 //volatile float PID_in[2];
 volatile float PID_out[2];
 //float PID_P[2], PID_I[2], PID_D[2];
@@ -27,7 +27,7 @@ void PID_Init(float *Kp, float *Ki, float *Kd, float Ts) {
 
 
 
-void PID_Calculate(int16_t *PID_in){
+float *PID_Calculate(int16_t *PID_in, float *PID_current){
 	float error, PID_P, PID_I, PID_D;
 
 	for (int i=0;i<2; i++){
@@ -46,5 +46,6 @@ void PID_Calculate(int16_t *PID_in){
 			PID_out[i]=PID_out_min;
 		}
 	}
+	return PID_out;
 }
 

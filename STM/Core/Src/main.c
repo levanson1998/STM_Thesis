@@ -69,6 +69,7 @@ volatile float enc[4];
 /* UART 2*/
 uint8_t receivebuffer[6], transmitData[3];
 uint8_t dataTransmit[16];
+float data_Receive[2];
 /* PID Controller*/
 float Kp[2] = {1.0f, 0.5f};
 float Ki[2] = {1.0f, 0.5f};
@@ -163,6 +164,13 @@ void Transmit_Uart(float x, float y, float v_l, int dir_l, float v_r, int dir_r)
 //	dataTransmit[8]=(int8_t)v_l; // 8 bit truoc dau .
 //	dataTransmit[9]=(int8_t)((((int16_t)((x-(int16_t)v_l)*10000))|0xF0)>>8); // 8 bit H
 //	dataTransmit[10]=(int8_t)((((int16_t)((x-(int16_t)v_l)*10000))|0x0F));    // 8 bit L
+}
+
+float *Receive_Uart(){
+	data_Receive[0]=(float)(receivebuffer[0]+(float)((uint16_t)((receivebuffer[1]<<8)|receivebuffer[2])));
+	data_Receive[1]=(float)(receivebuffer[3]+(float)((uint16_t)((receivebuffer[4]<<8)|receivebuffer[5])));
+
+	return data_Receive;
 }
 
 /* USER CODE END 0 */
@@ -633,17 +641,18 @@ static void MX_GPIO_Init(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 //	delay 5ms
 	if(htim->Instance==htim5.Instance){
-		HAL_GPIO_TogglePin(GPIOD, LED_GRE_Pin);
+		volatile float PID_current[2], v_target[2], *duty_cycle, *data_Receive;
 
-		velo =Get_Velocity();
+		HAL_GPIO_TogglePin(GPIOD, LED_GRE_Pin);
+		velo = Get_Velocity();
+		data_Receive = Receive_Uart();
 		for(int i=0;i<2;i++){
 			PID_current[i]=*(velo+i);
+			v_target[i]=*(data_Receive+i);
 		}
-		test[0]=10.0f;
-		test[1]=8.0f;
-		//encoder[i]=*(velo+i);
-		PID_Calculate(test);
-		Control_Motor(PID_out[1], PID_out[0]);
+
+		duty_cycle = PID_Calculate(v_target, PID_current);
+		Control_Motor(*(duty_cycle), *(duty_cycle+1));
 	}
 //	delay 100ms
 	else if(htim->Instance==htim9.Instance){
