@@ -12,6 +12,7 @@ volatile float PID_current[2];
 volatile float PID_out[2];
 //float PID_P[2], PID_I[2], PID_D[2];
 float PID_Kp[2], PID_Ki[2], PID_Kd[2];
+float PID_Test[10];
 float PID_pre_err[2], PID_ppre_err[2];
 float PID_out_max, PID_out_min, PID_T;
 
@@ -30,6 +31,7 @@ void PID_Calculate(int16_t *PID_in){
 	float error, PID_P, PID_I, PID_D;
 
 	for (int i=0;i<2; i++){
+		PID_Test[i]=PID_in[i];
 		error = PID_current[i]-PID_in[i];
 		PID_P = PID_Kp[i]*(error-PID_pre_err[i]);
 		PID_I = 0.5F*PID_Ki[i]*PID_T*(error+PID_pre_err[i]);

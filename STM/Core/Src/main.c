@@ -56,16 +56,17 @@ TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim5;
 TIM_HandleTypeDef htim9;
 
-USART_HandleTypeDef husart2;
+UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
-volatile int16_t *velo;
+volatile float *velo;
 volatile int16_t encoder[2];
-volatile int16_t enc[2];
+volatile int16_t /*enc[2], */test[10];
 
 /* UART 2*/
 uint8_t receivebuffer[6], transmitData[3];
+uint8_t dataTransmit[14];
 
 /* PID Controller*/
 float Kp[2] = {1.0f, 0.5f};
@@ -83,11 +84,11 @@ static void MX_TIM1_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_TIM9_Init(void);
-static void MX_USART2_Init(void);
+static void MX_USART2_UART_Init(void);
 static void MX_TIM5_Init(void);
 /* USER CODE BEGIN PFP */
 void Control_Motor(int16_t duty_l,int16_t duty_r);
-int Get_Velocity();
+float * Get_Velocity();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -112,15 +113,45 @@ void Control_Motor(int16_t duty_l,int16_t duty_r){
 	}
 }
 
-int Get_Velocity(){
-	int16_t enc[2];
-	enc[0]= TIM3->CNT;
-	enc[1]= TIM5->CNT;
-	TIM3->CNT=0;
-	TIM5->CNT=0;
+float * Get_Velocity(){
+	float enc[2];
+	enc[0]= (TIM4->CNT);
+	enc[1]= (TIM2->CNT);
+//	TIM4->CNT=0;
+//	TIM2->CNT=0;
 	return enc;
 }
 
+// data1: x, data2: y, Kpid
+void Transmit_Uart(float x, float y, float v_l, float v_r){
+
+	dataTransmit[0]=(uint8_t)((((uint16_t)x)|0x00FF)>>8); // 8 bit H
+	dataTransmit[1]=(uint8_t)((((uint16_t)x)|0xFF00)); 	      // 8 bit L
+	dataTransmit[2]=(uint8_t)((((uint16_t)((x-(uint16_t)x)*10000.0f))|0x00FF)>>8); // 8 bit H
+	dataTransmit[3]=(uint8_t)((((uint16_t)((x-(uint16_t)x)*10000.0f))|0xFF00));    // 8 bit L
+
+	dataTransmit[4]=(uint8_t)((((uint16_t)y)|0x00FF)>>8); // 8 bit H
+	dataTransmit[5]=(uint8_t)((((uint16_t)y)|0xFF00)); 	      // 8 bit L
+	dataTransmit[6]=(uint8_t)((((uint16_t)((y-(uint16_t)y)*10000.0f))|0x00FF)>>8); // 8 bit H
+	dataTransmit[7]=(uint8_t)((((uint16_t)((y-(uint16_t)y)*10000.0f))|0xFF00));    // 8 bit L
+
+	dataTransmit[8]=(uint8_t)v_l; // 8 bit truoc dau .
+	dataTransmit[9]=(uint8_t)((((uint16_t)((v_l-(uint16_t)v_l)*10000.0f))|0x00FF)>>8); // 8 bit H
+	dataTransmit[10]=(uint8_t)((((uint16_t)((v_l-(uint16_t)v_l)*10000.0f))|0xFF00));    // 8 bit L
+
+	dataTransmit[11]=(uint8_t)v_r; // 8 bit truoc dau .
+	dataTransmit[12]=(uint8_t)((((uint16_t)((v_r-(uint16_t)v_r)*10000.0f))|0x00FF)>>8); // 8 bit H
+	dataTransmit[13]=(uint8_t)((((uint16_t)((v_r-(uint16_t)v_r)*10000.0f))|0xFF00));    // 8 bit L
+
+//	for(int i=0;i<14;i++){
+//		dataTransmit[i]=0xF3;
+//	}
+
+	HAL_UART_Transmit(&huart2, &dataTransmit[0], 14, 1);
+//	dataTransmit[8]=(int8_t)v_l; // 8 bit truoc dau .
+//	dataTransmit[9]=(int8_t)((((int16_t)((x-(int16_t)v_l)*10000))|0xF0)>>8); // 8 bit H
+//	dataTransmit[10]=(int8_t)((((int16_t)((x-(int16_t)v_l)*10000))|0x0F));    // 8 bit L
+}
 
 /* USER CODE END 0 */
 
@@ -157,7 +188,7 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM4_Init();
   MX_TIM9_Init();
-  MX_USART2_Init();
+  MX_USART2_UART_Init();
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
 
@@ -166,7 +197,7 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim5);
   HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
-  HAL_USART_Receive_DMA(&husart2 ,&receivebuffer[0], 6);
+  HAL_UART_Receive_DMA(&huart2 ,&receivebuffer[0], 6);
 
   PID_Init(Kp, Ki, Kd, Ts);
   /* USER CODE END 2 */
@@ -493,7 +524,7 @@ static void MX_TIM9_Init(void)
   * @param None
   * @retval None
   */
-static void MX_USART2_Init(void)
+static void MX_USART2_UART_Init(void)
 {
 
   /* USER CODE BEGIN USART2_Init 0 */
@@ -503,16 +534,15 @@ static void MX_USART2_Init(void)
   /* USER CODE BEGIN USART2_Init 1 */
 
   /* USER CODE END USART2_Init 1 */
-  husart2.Instance = USART2;
-  husart2.Init.BaudRate = 115200;
-  husart2.Init.WordLength = USART_WORDLENGTH_8B;
-  husart2.Init.StopBits = USART_STOPBITS_1;
-  husart2.Init.Parity = USART_PARITY_NONE;
-  husart2.Init.Mode = USART_MODE_TX_RX;
-  husart2.Init.CLKPolarity = USART_POLARITY_LOW;
-  husart2.Init.CLKPhase = USART_PHASE_1EDGE;
-  husart2.Init.CLKLastBit = USART_LASTBIT_DISABLE;
-  if (HAL_USART_Init(&husart2) != HAL_OK)
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -602,21 +632,29 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 //	delay 5ms
 	if(htim->Instance==htim5.Instance){
 		HAL_GPIO_TogglePin(GPIOD, LED_GRE_Pin);
-		enc[0]= TIM4->CNT;
-		enc[1]= TIM2->CNT;
-		TIM4->CNT=0;
-		TIM2->CNT=0;
-		//velo =Get_Velocity();
+/*
+		velo =Get_Velocity();
 		for(int i=0;i>2;i++){
+			test[i]=*(velo+i);
 			//encoder[i]=*(velo+i);
-			PID_Calculate(enc);
+			PID_Calculate(test);
 			Control_Motor(PID_out[1], PID_out[0]);
 		}
+*/
+
 	}
 //	delay 100ms
 	else if(htim->Instance==htim9.Instance){
 		HAL_GPIO_TogglePin(GPIOD, LED_RED_Pin);
 
+		velo =Get_Velocity();
+		for(int i=0;i>2;i++){
+			test[i]=*(velo+i);
+			//encoder[i]=*(velo+i);
+			PID_Calculate(test);
+			Control_Motor(PID_out[1], PID_out[0]);
+		}
+		Transmit_Uart(523.456, 321.654,*(velo),*(velo+1));
 	}
 }
 /* USER CODE END 4 */

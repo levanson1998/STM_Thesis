@@ -60,6 +60,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define ENCODER_R1_Pin GPIO_PIN_5
+#define ENCODER_R1_GPIO_Port GPIOA
 #define MOTOR_L_Pin GPIO_PIN_9
 #define MOTOR_L_GPIO_Port GPIOE
 #define MOTOR_R_Pin GPIO_PIN_11
@@ -78,6 +80,12 @@ void Error_Handler(void);
 #define LED_RED_GPIO_Port GPIOD
 #define LED_BLU_Pin GPIO_PIN_15
 #define LED_BLU_GPIO_Port GPIOD
+#define ENCODER_R2_Pin GPIO_PIN_3
+#define ENCODER_R2_GPIO_Port GPIOB
+#define ENCODER_L2_Pin GPIO_PIN_6
+#define ENCODER_L2_GPIO_Port GPIOB
+#define ENCODER_L1_Pin GPIO_PIN_7
+#define ENCODER_L1_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
