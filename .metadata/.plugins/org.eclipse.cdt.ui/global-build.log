@@ -1,7 +1,31 @@
-01:22:49 **** Incremental Build of configuration Debug for project STM ****
+11:26:59 **** Incremental Build of configuration Debug for project STM ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/pid_controller.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DUSE_HAL_DRIVER -DSTM32F411xE -DDEBUG -c -I../Drivers/CMSIS/Include -I"E:/LAPTOP/HOC_TAP/DC-LVTN/Project/STM32F411/STM/Core/Src" -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Core/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/pid_controller.d" -MT"Core/Src/pid_controller.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/pid_controller.o"
+arm-none-eabi-gcc -o "STM.elf" @"objects.list"   -mcpu=cortex-m4 -T"E:\LAPTOP\HOC_TAP\DC-LVTN\Project\STM32F411\STM\STM32F411VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: STM.elf
+ 
+arm-none-eabi-objdump -h -S  STM.elf  > "STM.list"
+arm-none-eabi-objcopy  -O binary  STM.elf  "STM.bin"
+arm-none-eabi-size   STM.elf 
+   text	   data	    bss	    dec	    hex	filename
+  20496	     56	   2288	  22840	   5938	STM.elf
+Finished building: default.size.stdout
+ 
+Finished building: STM.bin
+ 
+Finished building: STM.list
+ 
+11:27:07 **** Incremental Build of configuration Debug for project STM ****
 make -j4 all 
 arm-none-eabi-size   STM.elf 
    text	   data	    bss	    dec	    hex	filename
-  20324	     48	   2232	  22604	   584c	STM.elf
+  20496	     56	   2288	  22840	   5938	STM.elf
+Finished building: default.size.stdout
+ 
+11:27:17 **** Incremental Build of configuration Debug for project STM ****
+make -j4 all 
+arm-none-eabi-size   STM.elf 
+   text	   data	    bss	    dec	    hex	filename
+  20496	     56	   2288	  22840	   5938	STM.elf
 Finished building: default.size.stdout
  

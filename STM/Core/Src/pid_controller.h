@@ -12,13 +12,13 @@
 
 extern volatile float PID_current[2];
 extern volatile float PID_in[2];
-extern volatile float PID_out[2];
-extern float PID_P[2], PID_I[2], PID_D[2];
+extern float PID_out[2];
+extern float error, PID_P, PID_I, PID_D;
 extern float PID_Kp[2], PID_Ki[2], PID_Kd[2];
 extern float PID_pre_err[2], PID_ppre_err[2];
 extern float PID_out_max, PID_out_min, PID_T;
 
 void PID_Init(float *Kp, float *Ki, float *Kd, float Ts);
-float *PID_Calculate(int16_t *PID_in, float *PID_current);
+float *PID_Calculate(float *PID_in, float *PID_current1);
 
 #endif /* SRC_PID_CONTROLLER_H_ */

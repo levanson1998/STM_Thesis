@@ -1,0 +1,24 @@
+/*
+ * pid_controller.h
+ *
+ *  Created on: Jul 23, 2020
+ *      Author: Son
+ */
+
+#ifndef SRC_PID_CONTROLLER_H_
+#define SRC_PID_CONTROLLER_H_
+
+#include "stdint.h"
+
+extern volatile float PID_current[2];
+extern volatile float PID_in[2];
+extern volatile float PID_out[2];
+extern float PID_P[2], PID_I[2], PID_D[2];
+extern float PID_Kp[2], PID_Ki[2], PID_Kd[2];
+extern float PID_pre_err[2], PID_ppre_err[2];
+extern float PID_out_max, PID_out_min, PID_T;
+
+void PID_Init(float *Kp, float *Ki, float *Kd, float Ts);
+float *PID_Calculate(int16_t *PID_in, float *PID_current);
+
+#endif /* SRC_PID_CONTROLLER_H_ */

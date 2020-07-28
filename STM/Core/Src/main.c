@@ -63,7 +63,7 @@ DMA_HandleTypeDef hdma_usart2_rx;
 /* USER CODE BEGIN PV */
 volatile float *velo;
 volatile int16_t encoder[2];
-volatile int16_t /*enc[2], */test[10];
+volatile float /*enc[2], */test[10];
 volatile float enc[4];
 
 /* UART 2*/
@@ -71,10 +71,13 @@ uint8_t receivebuffer[6], transmitData[3];
 uint8_t dataTransmit[16];
 float data_Receive[2];
 /* PID Controller*/
-float Kp[2] = {1.0f, 0.5f};
-float Ki[2] = {1.0f, 0.5f};
-float Kd[2] = {1.0f, 0.5f};
+float Kp[2] = {25.0f, 25.0f};
+float Ki[2] = {1.0f, 1.0f};
+float Kd[2] = {0.25f, 0.25f};
 float Ts = 5; // 5ms
+
+/*  interupt*/
+volatile float PID_current[2], v_target[2], *duty_cycle;
 
 /* USER CODE END PV */
 
@@ -96,6 +99,8 @@ float * Get_Velocity();
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void Control_Motor(int16_t duty_l,int16_t duty_r){
+	test[0]=duty_l;
+	test[1]=duty_r;
 	if(duty_l>0){
 		HAL_GPIO_WritePin(GPIOD, MOTOR_DIR_L_Pin, GPIO_PIN_SET);
 		__HAL_TIM_SET_COMPARE(&htim1, MOTOR_L_Pin, duty_l);
@@ -118,7 +123,7 @@ void Control_Motor(int16_t duty_l,int16_t duty_r){
 float * Get_Velocity(){
 //	volatile float enc[2];
 	enc[0]= fabs((TIM4->CNT)-5000.0F);
-	if ((TIM4->CNT)>5000) enc[1]=0x01;
+	if ((TIM4->CNT)>=5000) enc[1]=0x00;
 	else enc[1]=0x01;
 
 	enc[2]= fabs((TIM2->CNT)-5000.0F);
@@ -167,8 +172,8 @@ void Transmit_Uart(float x, float y, float v_l, int dir_l, float v_r, int dir_r)
 }
 
 float *Receive_Uart(){
-	data_Receive[0]=(float)(receivebuffer[0]+(float)((uint16_t)((receivebuffer[1]<<8)|receivebuffer[2])));
-	data_Receive[1]=(float)(receivebuffer[3]+(float)((uint16_t)((receivebuffer[4]<<8)|receivebuffer[5])));
+	data_Receive[0]=(float)(receivebuffer[0]+(float)(((uint16_t)((receivebuffer[1]<<8)|receivebuffer[2])/10000.0f)));
+	data_Receive[1]=(float)(receivebuffer[3]+(float)(((uint16_t)((receivebuffer[4]<<8)|receivebuffer[5])/10000.0f)));
 
 	return data_Receive;
 }
@@ -641,17 +646,21 @@ static void MX_GPIO_Init(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 //	delay 5ms
 	if(htim->Instance==htim5.Instance){
-		volatile float PID_current[2], v_target[2], *duty_cycle, *data_Receive;
+		volatile float *data_Receive;
 
 		HAL_GPIO_TogglePin(GPIOD, LED_GRE_Pin);
 		velo = Get_Velocity();
 		data_Receive = Receive_Uart();
 		for(int i=0;i<2;i++){
-			PID_current[i]=*(velo+i);
-			v_target[i]=*(data_Receive+i);
+			// do float ton 2 bytes nen i*2
+			PID_current[i]=*(velo+i*2);
+//			v_target[i]=*(data_Receive+i);
+			v_target[i] = 10.0f;
 		}
 
 		duty_cycle = PID_Calculate(v_target, PID_current);
+		test[2]=*(duty_cycle);
+		test[3]=*(duty_cycle+1);
 		Control_Motor(*(duty_cycle), *(duty_cycle+1));
 	}
 //	delay 100ms
