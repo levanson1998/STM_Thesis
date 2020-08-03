@@ -71,14 +71,19 @@ uint8_t receivebuffer[6], transmitData[3];
 uint8_t dataTransmit[16];
 float data_Receive[2];
 /* PID Controller*/
-float Kp[2] = {25.0f, 25.0f};
-float Ki[2] = {1.0f, 1.0f};
-float Kd[2] = {0.25f, 0.25f};
+float Kp[2] = {20.5f, 6.0f};
+float Ki[2] = {2.0f, 1.0f};
+float Kd[2] = {0.03f, 0.0f};
 float Ts = 5; // 5ms
+float vt;
 
 /*  interupt*/
 volatile float PID_current[2], v_target[2], *duty_cycle;
 
+float A0, A1, A2, Aout, E0, E1, E2;
+float Aout1;
+/*test*/
+uint32_t t1,t2,t3,t4;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -98,37 +103,51 @@ float * Get_Velocity();
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void Control_Motor(int16_t duty_l,int16_t duty_r){
-	test[0]=duty_l;
-	test[1]=duty_r;
-	if(duty_l>0){
+void Control_Motor(int16_t duty_r,int16_t duty_l){
+	test[0]=duty_r;
+	test[1]=duty_l;
+
+
+
+	HAL_GPIO_WritePin(GPIOD, MOTOR_DIR_R_Pin, GPIO_PIN_RESET);
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, duty_r);
+
+	HAL_GPIO_WritePin(GPIOD, MOTOR_DIR_L_Pin, GPIO_PIN_RESET);
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
+
+
+	HAL_GPIO_TogglePin(GPIOD, LED_ORG_Pin);
+
+/*
+	if(duty_l>=0){
+		HAL_GPIO_WritePin(GPIOD, MOTOR_DIR_L_Pin, GPIO_PIN_RESET);
+		__HAL_TIM_SET_COMPARE(&htim1, MOTOR_L_Pin, 100);
+	}
+	else{
 		HAL_GPIO_WritePin(GPIOD, MOTOR_DIR_L_Pin, GPIO_PIN_SET);
 		__HAL_TIM_SET_COMPARE(&htim1, MOTOR_L_Pin, duty_l);
 	}
-	else{
-		HAL_GPIO_WritePin(GPIOD, MOTOR_DIR_L_Pin, GPIO_PIN_RESET);
-		__HAL_TIM_SET_COMPARE(&htim1, MOTOR_L_Pin, duty_l);
-	}
 
-	if(duty_r>0){
+	if(duty_r>=0){
 		HAL_GPIO_WritePin(GPIOD, MOTOR_DIR_R_Pin, GPIO_PIN_RESET);
-		__HAL_TIM_SET_COMPARE(&htim1, MOTOR_L_Pin, duty_r);
+		__HAL_TIM_SET_COMPARE(&htim1, MOTOR_R_Pin, duty_r);
 	}
 	else{
 		HAL_GPIO_WritePin(GPIOD, MOTOR_DIR_R_Pin, GPIO_PIN_SET);
 		__HAL_TIM_SET_COMPARE(&htim1, MOTOR_R_Pin, duty_r);
 	}
+*/
 }
 
 float * Get_Velocity(){
 //	volatile float enc[2];
-	enc[0]= fabs((TIM4->CNT)-5000.0F);
-	if ((TIM4->CNT)>=5000) enc[1]=0x00;
-	else enc[1]=0x01;
+	enc[0]= fabs((TIM2->CNT)-5000.0F);
+	if ((TIM2->CNT)>=5000) enc[1]=-1;
+	else enc[1]=1;
 
-	enc[2]= fabs((TIM2->CNT)-5000.0F);
-	if ((TIM2->CNT)>5000) enc[3]=0x01;
-	else enc[3]=0x00;
+	enc[2]= fabs((TIM4->CNT)-5000.0F);
+	if ((TIM4->CNT)>5000) enc[3]=1;
+	else enc[3]=-1;
 
 	TIM4->CNT=5000;
 	TIM2->CNT=5000;
@@ -216,8 +235,8 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
-
-  HAL_TIM_PWM_Start(&htim1, MOTOR_DIR_L_Pin|MOTOR_DIR_R_Pin);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_Base_Start_IT(&htim9);
   HAL_TIM_Base_Start_IT(&htim5);
   HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
@@ -231,6 +250,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
 	  // HAL_GPIO_TogglePin(GPIOD, LED_BLU_Pin);
 
 //	  HAL_GPIO_TogglePin(GPIOD, LED_RED_Pin);
@@ -647,15 +667,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 //	delay 5ms
 	if(htim->Instance==htim5.Instance){
 		volatile float *data_Receive;
-
+		t1++;
 		HAL_GPIO_TogglePin(GPIOD, LED_GRE_Pin);
 		velo = Get_Velocity();
 		data_Receive = Receive_Uart();
 		for(int i=0;i<2;i++){
-			// do float ton 2 bytes nen i*2
 			PID_current[i]=*(velo+i*2);
 //			v_target[i]=*(data_Receive+i);
-			v_target[i] = 10.0f;
+//			v_target[i] = 10.0f;
 		}
 
 		duty_cycle = PID_Calculate(v_target, PID_current);
@@ -666,7 +685,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 //	delay 100ms
 	else if(htim->Instance==htim9.Instance){
 		HAL_GPIO_TogglePin(GPIOD, LED_RED_Pin);
-
+		v_target[0] = 15.0;
+/*		if(v_target[0] >= 19.0f) vt=-0.5f;
+		else if (v_target[0] <= 2.0) vt = 0.5f;*/
 		Transmit_Uart(523.456, 321.654,*(velo), *(velo+1), *(velo+2), *(velo+3));
 //		Transmit_Uart(523.456, 321.654,12.356,1,20.214,3);
 	}

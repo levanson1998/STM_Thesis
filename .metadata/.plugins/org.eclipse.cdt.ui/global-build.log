@@ -1,6 +1,28 @@
-11:26:59 **** Incremental Build of configuration Debug for project STM ****
+16:21:42 **** Incremental Build of configuration Debug for project STM ****
 make -j4 all 
-arm-none-eabi-gcc "../Core/Src/pid_controller.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DUSE_HAL_DRIVER -DSTM32F411xE -DDEBUG -c -I../Drivers/CMSIS/Include -I"E:/LAPTOP/HOC_TAP/DC-LVTN/Project/STM32F411/STM/Core/Src" -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Core/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/pid_controller.d" -MT"Core/Src/pid_controller.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/pid_controller.o"
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DUSE_HAL_DRIVER -DSTM32F411xE -DDEBUG -c -I../Drivers/CMSIS/Include -I"E:/LAPTOP/HOC_TAP/DC-LVTN/Project/STM32F411/STM/Core/Src" -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Core/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'Get_Velocity':
+../Core/Src/main.c:155:9: warning: return discards 'volatile' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  return enc;
+         ^~~
+../Core/Src/main.c: In function 'HAL_TIM_PeriodElapsedCallback':
+../Core/Src/main.c:680:30: warning: passing argument 1 of 'PID_Calculate' discards 'volatile' qualifier from pointer target type [-Wdiscarded-qualifiers]
+   duty_cycle = PID_Calculate(v_target, PID_current);
+                              ^~~~~~~~
+In file included from ../Core/Src/main.c:35:0:
+E:/LAPTOP/HOC_TAP/DC-LVTN/Project/STM32F411/STM/Core/Src/pid_controller.h:23:8: note: expected 'float *' but argument is of type 'volatile float *'
+ float *PID_Calculate(float *PID_in, float *PID_current1);
+        ^~~~~~~~~~~~~
+../Core/Src/main.c:680:40: warning: passing argument 2 of 'PID_Calculate' discards 'volatile' qualifier from pointer target type [-Wdiscarded-qualifiers]
+   duty_cycle = PID_Calculate(v_target, PID_current);
+                                        ^~~~~~~~~~~
+In file included from ../Core/Src/main.c:35:0:
+E:/LAPTOP/HOC_TAP/DC-LVTN/Project/STM32F411/STM/Core/Src/pid_controller.h:23:8: note: expected 'float *' but argument is of type 'volatile float *'
+ float *PID_Calculate(float *PID_in, float *PID_current1);
+        ^~~~~~~~~~~~~
+../Core/Src/main.c:669:19: warning: variable 'data_Receive' set but not used [-Wunused-but-set-variable]
+   volatile float *data_Receive;
+                   ^~~~~~~~~~~~
 arm-none-eabi-gcc -o "STM.elf" @"objects.list"   -mcpu=cortex-m4 -T"E:\LAPTOP\HOC_TAP\DC-LVTN\Project\STM32F411\STM\STM32F411VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 Finished building target: STM.elf
  
@@ -8,24 +30,17 @@ arm-none-eabi-objdump -h -S  STM.elf  > "STM.list"
 arm-none-eabi-objcopy  -O binary  STM.elf  "STM.bin"
 arm-none-eabi-size   STM.elf 
    text	   data	    bss	    dec	    hex	filename
-  20496	     56	   2288	  22840	   5938	STM.elf
+  20496	     52	   2356	  22904	   5978	STM.elf
 Finished building: default.size.stdout
  
 Finished building: STM.bin
  
 Finished building: STM.list
  
-11:27:07 **** Incremental Build of configuration Debug for project STM ****
+16:21:49 **** Incremental Build of configuration Debug for project STM ****
 make -j4 all 
 arm-none-eabi-size   STM.elf 
    text	   data	    bss	    dec	    hex	filename
-  20496	     56	   2288	  22840	   5938	STM.elf
-Finished building: default.size.stdout
- 
-11:27:17 **** Incremental Build of configuration Debug for project STM ****
-make -j4 all 
-arm-none-eabi-size   STM.elf 
-   text	   data	    bss	    dec	    hex	filename
-  20496	     56	   2288	  22840	   5938	STM.elf
+  20496	     52	   2356	  22904	   5978	STM.elf
 Finished building: default.size.stdout
  
